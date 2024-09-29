@@ -3,6 +3,7 @@ import { AuthResponse, RegisterResponse, User } from '@/types/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
+import Toast from 'react-native-root-toast';
 
 interface AuthContextProps {
   isLoggedIn: boolean;
@@ -56,11 +57,26 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
           const registerResp = response as RegisterResponse;
           const { message } = registerResp;
           const { id } = registerResp.data;
-          console.log({ message, id });
+          const toast: Toast = Toast.show(message, {
+            duration: Toast.durations.LONG,
+          });
+          setTimeout(function hideToast() {
+            Toast.hide(toast);
+          }, 1500);
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const err: Error = error as Error;
       setIsLoggedIn(false);
+      const message = err?.message?? 'unknown server error';
+      const toast: Toast = Toast.show(message, {
+        duration: Toast.durations.LONG,
+        textColor: 'red',
+        backgroundColor: 'orange'
+      });
+      setTimeout(function hideToast() {
+        Toast.hide(toast);
+      }, 1500);
     } finally {
       setIsLoadingAuth(false);
     }

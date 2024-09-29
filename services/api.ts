@@ -13,7 +13,9 @@ Api.interceptors.request.use(async config =>{
 
 Api.interceptors.response.use(
   async (res: AxiosResponse) => res.data,
-  async (err: AxiosError) => Promise.reject(err)
+  async (err: AxiosError<{statusCode: number, message: string, error: string}, any>) => {
+    return Promise.reject(err.response?.data)
+  }
 );
 
 export {Api};
