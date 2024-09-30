@@ -11,6 +11,7 @@ interface AuthContextProps {
   authenticate: (authMode: 'login'|'register', email: string, password: string) => Promise<void>;
   logout: VoidFunction;
   user: User | null;
+  refresh: VoidFunction;
 }
 
 const AuthContext = createContext({} as AuthContextProps);
@@ -37,6 +38,38 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
     }
     checkIfLoggedIn()
   }, []);
+  async function refresh() {
+    try {
+      setIsLoadingAuth(true);
+      const response = await userService.refresh();
+      if (response) {
+        const authData: AuthResponse = response as unknown as AuthResponse;
+        const {user, access_token, refresh_token} = authData.data;
+        await Promise.all([
+          AsyncStorage.setItem('access_token', access_token),
+          AsyncStorage.setItem('refresh_token', refresh_token),
+          AsyncStorage.setItem('user', JSON.stringify(user))
+        ]);
+        setUser(user);
+        router.replace("(authed)");
+        setIsLoggedIn(true);
+      }
+    } catch (error) {
+      const err: Error = error as Error;
+      setIsLoggedIn(false);
+      const message = err?.message?? 'unknown server error';
+      const toast: Toast = Toast.show(message, {
+        duration: Toast.durations.LONG,
+        textColor: 'red',
+        backgroundColor: 'orange'
+      });
+      setTimeout(function hideToast() {
+        Toast.hide(toast);
+      }, 1500);
+    } finally {
+      setIsLoadingAuth(false);
+    }
+  }
   async function authenticate(authMode: 'login'|'register', email: string, password: string):Promise<void> {
     try {
       setIsLoadingAuth(true);
@@ -98,6 +131,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
       authenticate,
       user,
       logout,
+      refresh,
      }}
     >
       {children}

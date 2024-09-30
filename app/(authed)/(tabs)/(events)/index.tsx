@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { eventService } from '@/services/event';
 import { Event } from '@/types/event';
 import { UserRole } from '@/types/user';
+import { useFocusEffect } from '@react-navigation/native';
 import { router, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
@@ -25,7 +26,7 @@ export default function EventsScreen() {
   }
   function buyTicket(id: string) {
     try {
-      // await ticket service
+      // TODO: await ticket service
     } catch(error) {
       const err: Error = error as Error;
       const message = err?.message?? 'unknown server error';
@@ -39,7 +40,7 @@ export default function EventsScreen() {
       }, 1500);
     }
   }
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = async () => {
     try {
       setIsLoading(true);
       const response = await eventService.getAll();
@@ -58,14 +59,16 @@ export default function EventsScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
-  useEffect(() => {
+  };
+  useFocusEffect(useCallback(()=>{
     fetchEvents()
+  }, []))
+  useEffect(() => {
     navigation.setOptions({
       headerTitle: 'Events',
       headerRight: user?.role === UserRole.Admin ? headerRight:null
     });
-  }, [fetchEvents, navigation]);
+  }, [navigation, user]);
   return <VStack flex={1} p={20} pb={0} gap={20}>
       <HStack alignItems='center' justifyContent='center'>
         <Text fontSize={18} bold>{events.length} Events</Text>
