@@ -6,12 +6,13 @@ import { Text } from '@/components/Text';
 import { VStack } from '@/components/VStack';
 import { useAuth } from '@/context/AuthContext';
 import { eventService } from '@/services/event';
+import { ticketService } from '@/services/ticket';
 import { Event } from '@/types/event';
 import { UserRole } from '@/types/user';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, TouchableOpacity } from 'react-native';
+import { Alert, FlatList, TouchableOpacity } from 'react-native';
 import Toast from 'react-native-root-toast';
 
 export default function EventsScreen() {
@@ -24,9 +25,16 @@ export default function EventsScreen() {
       router.push(`/(events)/event/${id}`);
     }
   }
-  function buyTicket(id: string) {
+  async function buyTicket(id: string) {
     try {
-      // TODO: await ticket service
+      const response = await ticketService.createOne(id, user?.id??'');
+      const toast: Toast = Toast.show(response.message, {
+        duration: Toast.durations.LONG,
+      });
+      setTimeout(function hideToast() {
+        Toast.hide(toast);
+      }, 1500);
+      fetchEvents();
     } catch(error) {
       const err: Error = error as Error;
       const message = err?.message?? 'unknown server error';
