@@ -37,3 +37,6 @@ npm run reset-project
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
 
+## Notice
+
+in api.ts , the api url should be modified with your server url
